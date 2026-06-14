@@ -33,6 +33,6 @@ springdoc:
 app:
   security:
     jwt:
-      secret: ${SUPABASE_JWT_SECRET}
-      issuer: supabase
+      jwks-uri: ${SUPABASE_JWKS_URI:https://oiuaeujdqdhmlzdbamvv.supabase.co/auth/v1/.well-known/jwks.json}
+      issuer: ${SUPABASE_JWT_ISSUER:https://oiuaeujdqdhmlzdbamvv.supabase.co/auth/v1}
       clock-skew-seconds: 30

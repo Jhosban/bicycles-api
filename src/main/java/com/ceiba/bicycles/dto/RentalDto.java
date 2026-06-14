@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 public record RentalDto(
 
@@ -55,12 +56,17 @@ public record RentalDto(
                 && rental.getLateFee() != null
                 && rental.getLateFee() > 0;
 
+        Long realMinutes = null;
+        if (rental.getStartTime() != null && rental.getEndTime() != null) {
+            realMinutes = ChronoUnit.MINUTES.between(rental.getStartTime(), rental.getEndTime());
+        }
+
         return new RentalDto(
                 rental.getId(),
                 rental.getBicycle().getCode(),
                 rental.getCustomerName(),
                 rental.getEstimatedDurationHours(),
-                null,
+                realMinutes,
                 rental.getStartTime(),
                 rental.getEndTime(),
                 rental.getBaseCost(),
