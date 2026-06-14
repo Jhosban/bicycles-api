@@ -1,8 +1,7 @@
 package com.ceiba.bicycles.service;
 
-import com.ceiba.bicycles.dto.request.FinishRentalRequest;
-import com.ceiba.bicycles.dto.request.StartRentalRequest;
-import com.ceiba.bicycles.dto.response.RentalResponse;
+import com.ceiba.bicycles.dto.FinishRentalDto;
+import com.ceiba.bicycles.dto.RentalDto;
 import com.ceiba.bicycles.exception.BicycleNotAvailableException;
 import com.ceiba.bicycles.exception.BicycleNotFoundException;
 import com.ceiba.bicycles.exception.RentalNotFoundException;
@@ -67,7 +66,10 @@ class RentalServiceTest {
     @Test
     void shouldStartRentalAndMarkBicycleAsAlquilada() {
         Bicycle bicycle = buildBicycle("BIC-001", BicycleType.URBANA, BicycleStatus.DISPONIBLE);
-        StartRentalRequest request = new StartRentalRequest("BIC-001", "Juan Perez", 2);
+        RentalDto request = new RentalDto(
+                null, "BIC-001", "Juan Perez", 2,
+                null, null, null, null, null, null, null, null
+        );
 
         when(bicycleRepository.findByCode("BIC-001")).thenReturn(Optional.of(bicycle));
         when(rentalRepository.findFirstByBicycleCodeAndFinishedFalse("BIC-001"))
@@ -78,7 +80,7 @@ class RentalServiceTest {
             return r;
         });
 
-        RentalResponse response = rentalService.startRental(request);
+        RentalDto response = rentalService.startRental(request);
 
         assertThat(response.id()).isEqualTo(10L);
         assertThat(response.bicycleCode()).isEqualTo("BIC-001");
@@ -92,7 +94,10 @@ class RentalServiceTest {
 
     @Test
     void shouldThrowBicycleNotFoundWhenStartingRentalWithUnknownCode() {
-        StartRentalRequest request = new StartRentalRequest("BIC-999", "Juan", 2);
+        RentalDto request = new RentalDto(
+                null, "BIC-999", "Juan", 2,
+                null, null, null, null, null, null, null, null
+        );
         when(bicycleRepository.findByCode("BIC-999")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> rentalService.startRental(request))
@@ -106,7 +111,10 @@ class RentalServiceTest {
     void shouldThrowWhenBicycleHasActiveRental() {
         Bicycle bicycle = buildBicycle("BIC-001", BicycleType.URBANA, BicycleStatus.DISPONIBLE);
         Rental active = buildRental(5L, bicycle, 2, false);
-        StartRentalRequest request = new StartRentalRequest("BIC-001", "Juan", 2);
+        RentalDto request = new RentalDto(
+                null, "BIC-001", "Juan", 2,
+                null, null, null, null, null, null, null, null
+        );
 
         when(bicycleRepository.findByCode("BIC-001")).thenReturn(Optional.of(bicycle));
         when(rentalRepository.findFirstByBicycleCodeAndFinishedFalse("BIC-001"))
@@ -122,7 +130,10 @@ class RentalServiceTest {
     @Test
     void shouldThrowWhenBicycleStatusIsNotDisponible() {
         Bicycle bicycle = buildBicycle("BIC-004", BicycleType.MONTAÑA, BicycleStatus.EN_MANTENIMIENTO);
-        StartRentalRequest request = new StartRentalRequest("BIC-004", "Juan", 2);
+        RentalDto request = new RentalDto(
+                null, "BIC-004", "Juan", 2,
+                null, null, null, null, null, null, null, null
+        );
 
         when(bicycleRepository.findByCode("BIC-004")).thenReturn(Optional.of(bicycle));
         when(rentalRepository.findFirstByBicycleCodeAndFinishedFalse("BIC-004"))
@@ -146,7 +157,7 @@ class RentalServiceTest {
         when(rentalRepository.findById(10L)).thenReturn(Optional.of(rental));
         when(rentalRepository.save(any(Rental.class))).thenReturn(rental);
 
-        RentalResponse response = rentalService.finishRental(10L, new FinishRentalRequest(endTime));
+        RentalDto response = rentalService.finishRental(10L, new FinishRentalDto(endTime));
 
         assertThat(response.finished()).isTrue();
         assertThat(response.baseCost()).isEqualTo(7_000L);
@@ -164,7 +175,7 @@ class RentalServiceTest {
         when(rentalRepository.findById(10L)).thenReturn(Optional.of(rental));
         when(rentalRepository.save(any(Rental.class))).thenReturn(rental);
 
-        RentalResponse response = rentalService.finishRental(10L, new FinishRentalRequest(endTime));
+        RentalDto response = rentalService.finishRental(10L, new FinishRentalDto(endTime));
 
         assertThat(response.finished()).isTrue();
         assertThat(response.baseCost()).isEqualTo(20_000L);
@@ -181,7 +192,7 @@ class RentalServiceTest {
         when(rentalRepository.findById(10L)).thenReturn(Optional.of(rental));
         when(rentalRepository.save(any(Rental.class))).thenReturn(rental);
 
-        RentalResponse response = rentalService.finishRental(10L, new FinishRentalRequest(null));
+        RentalDto response = rentalService.finishRental(10L, new FinishRentalDto(null));
 
         assertThat(response.finished()).isTrue();
         assertThat(response.endTime()).isNotNull();
@@ -191,7 +202,7 @@ class RentalServiceTest {
     void shouldThrowWhenRentalNotFound() {
         when(rentalRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> rentalService.finishRental(99L, new FinishRentalRequest(null)))
+        assertThatThrownBy(() -> rentalService.finishRental(99L, new FinishRentalDto(null)))
                 .isInstanceOf(RentalNotFoundException.class)
                 .hasMessageContaining("99");
     }
@@ -203,7 +214,7 @@ class RentalServiceTest {
 
         when(rentalRepository.findById(10L)).thenReturn(Optional.of(rental));
 
-        assertThatThrownBy(() -> rentalService.finishRental(10L, new FinishRentalRequest(null)))
+        assertThatThrownBy(() -> rentalService.finishRental(10L, new FinishRentalDto(null)))
                 .isInstanceOf(RentalNotFoundException.class)
                 .hasMessageContaining("already been finished");
     }
@@ -216,7 +227,7 @@ class RentalServiceTest {
         when(rentalRepository.findById(10L)).thenReturn(Optional.of(rental));
         when(rentalRepository.save(any(Rental.class))).thenReturn(rental);
 
-        rentalService.finishRental(10L, new FinishRentalRequest(null));
+        rentalService.finishRental(10L, new FinishRentalDto(null));
 
         ArgumentCaptor<Bicycle> captor = ArgumentCaptor.forClass(Bicycle.class);
         verify(bicycleRepository).save(captor.capture());
@@ -235,7 +246,7 @@ class RentalServiceTest {
         when(rentalRepository.findByBicycleCodeOrderByStartTimeDesc("BIC-001"))
                 .thenReturn(List.of(r2, r1));
 
-        List<RentalResponse> history = rentalService.findHistory("BIC-001");
+        List<RentalDto> history = rentalService.findHistory("BIC-001");
 
         assertThat(history).hasSize(2);
         assertThat(history.get(0).id()).isEqualTo(2L);

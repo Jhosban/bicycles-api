@@ -1,8 +1,7 @@
 package com.ceiba.bicycles.service;
 
-import com.ceiba.bicycles.dto.request.FinishRentalRequest;
-import com.ceiba.bicycles.dto.request.StartRentalRequest;
-import com.ceiba.bicycles.dto.response.RentalResponse;
+import com.ceiba.bicycles.dto.FinishRentalDto;
+import com.ceiba.bicycles.dto.RentalDto;
 import com.ceiba.bicycles.exception.BicycleNotAvailableException;
 import com.ceiba.bicycles.exception.BicycleNotFoundException;
 import com.ceiba.bicycles.exception.RentalNotFoundException;
@@ -30,7 +29,7 @@ public class RentalService {
     private final PenaltyCalculator penaltyCalculator = new PenaltyCalculator();
 
     @Transactional
-    public RentalResponse startRental(StartRentalRequest request) {
+    public RentalDto startRental(RentalDto request) {
         Bicycle bicycle = bicycleRepository.findByCode(request.bicycleCode())
                 .orElseThrow(() -> new BicycleNotFoundException(request.bicycleCode()));
 
@@ -61,11 +60,11 @@ public class RentalService {
         bicycleRepository.save(bicycle);
 
         Rental saved = rentalRepository.save(rental);
-        return RentalResponse.from(saved);
+        return RentalDto.from(saved);
     }
 
     @Transactional
-    public RentalResponse finishRental(Long rentalId, FinishRentalRequest request) {
+    public RentalDto finishRental(Long rentalId, FinishRentalDto request) {
         Rental rental = rentalRepository.findById(rentalId)
                 .orElseThrow(() -> new RentalNotFoundException(rentalId));
 
@@ -100,11 +99,11 @@ public class RentalService {
         bicycleRepository.save(bicycle);
 
         Rental saved = rentalRepository.save(rental);
-        return RentalResponse.from(saved);
+        return RentalDto.from(saved);
     }
 
     @Transactional(readOnly = true)
-    public List<RentalResponse> findHistory(String bicycleCode) {
+    public List<RentalDto> findHistory(String bicycleCode) {
         if (!bicycleRepository.existsByCode(bicycleCode)) {
             throw new BicycleNotFoundException(bicycleCode);
         }
@@ -112,7 +111,7 @@ public class RentalService {
         List<Rental> rentals = rentalRepository
                 .findByBicycleCodeOrderByStartTimeDesc(bicycleCode);
         return rentals.stream()
-                .map(RentalResponse::from)
+                .map(RentalDto::from)
                 .toList();
     }
 }

@@ -1,7 +1,6 @@
 package com.ceiba.bicycles.controller;
 
-import com.ceiba.bicycles.dto.request.CreateBicycleRequest;
-import com.ceiba.bicycles.dto.response.BicycleResponse;
+import com.ceiba.bicycles.dto.BicycleDto;
 import com.ceiba.bicycles.model.BicycleType;
 import com.ceiba.bicycles.service.BicycleService;
 import jakarta.validation.Valid;
@@ -25,13 +24,13 @@ public class BicycleController {
     private final BicycleService bicycleService;
 
     @PostMapping
-    public ResponseEntity<BicycleResponse> create(@Valid @RequestBody CreateBicycleRequest request) {
-        BicycleResponse response = bicycleService.create(request);
+    public ResponseEntity<BicycleDto> create(@Valid @RequestBody BicycleDto request) {
+        BicycleDto response = bicycleService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/available")
-    public ResponseEntity<List<BicycleResponse>> findAvailable(
+    public ResponseEntity<List<BicycleDto>> findAvailable(
             @RequestParam(required = false) BicycleType type) {
         return ResponseEntity.ok(bicycleService.findAvailable(type));
     }

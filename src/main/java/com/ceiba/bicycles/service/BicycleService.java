@@ -1,7 +1,6 @@
 package com.ceiba.bicycles.service;
 
-import com.ceiba.bicycles.dto.request.CreateBicycleRequest;
-import com.ceiba.bicycles.dto.response.BicycleResponse;
+import com.ceiba.bicycles.dto.BicycleDto;
 import com.ceiba.bicycles.exception.BicycleNotFoundException;
 import com.ceiba.bicycles.model.Bicycle;
 import com.ceiba.bicycles.model.BicycleStatus;
@@ -20,7 +19,7 @@ public class BicycleService {
     private final BicycleRepository bicycleRepository;
 
     @Transactional
-    public BicycleResponse create(CreateBicycleRequest request) {
+    public BicycleDto create(BicycleDto request) {
         if (bicycleRepository.existsByCode(request.code())) {
             throw new IllegalArgumentException(
                 "Bicycle with code " + request.code() + " already exists"
@@ -34,17 +33,17 @@ public class BicycleService {
                 .build();
 
         Bicycle saved = bicycleRepository.save(bicycle);
-        return BicycleResponse.from(saved);
+        return BicycleDto.from(saved);
     }
 
     @Transactional(readOnly = true)
-    public List<BicycleResponse> findAvailable(BicycleType type) {
+    public List<BicycleDto> findAvailable(BicycleType type) {
         List<Bicycle> bicycles = (type == null)
                 ? bicycleRepository.findByStatus(BicycleStatus.DISPONIBLE)
                 : bicycleRepository.findByStatusAndType(BicycleStatus.DISPONIBLE, type);
 
         return bicycles.stream()
-                .map(BicycleResponse::from)
+                .map(BicycleDto::from)
                 .toList();
     }
 

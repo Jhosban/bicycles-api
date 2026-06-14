@@ -1,6 +1,6 @@
 package com.ceiba.bicycles.exception;
 
-import com.ceiba.bicycles.dto.response.ErrorResponse;
+import com.ceiba.bicycles.dto.ErrorDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,25 +18,25 @@ public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(BicycleNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleBicycleNotFound(
+    public ResponseEntity<ErrorDto> handleBicycleNotFound(
             BicycleNotFoundException ex, HttpServletRequest request) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), request, null);
     }
 
     @ExceptionHandler(BicycleNotAvailableException.class)
-    public ResponseEntity<ErrorResponse> handleBicycleNotAvailable(
+    public ResponseEntity<ErrorDto> handleBicycleNotAvailable(
             BicycleNotAvailableException ex, HttpServletRequest request) {
         return build(HttpStatus.CONFLICT, ex.getMessage(), request, null);
     }
 
     @ExceptionHandler(RentalNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleRentalNotFound(
+    public ResponseEntity<ErrorDto> handleRentalNotFound(
             RentalNotFoundException ex, HttpServletRequest request) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), request, null);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidation(
+    public ResponseEntity<ErrorDto> handleValidation(
             MethodArgumentNotValidException ex, HttpServletRequest request) {
         List<String> details = ex.getBindingResult()
                 .getFieldErrors()
@@ -47,16 +47,16 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGeneric(
+    public ResponseEntity<ErrorDto> handleGeneric(
             Exception ex, HttpServletRequest request) {
         log.error("Unhandled exception", ex);
         return build(HttpStatus.INTERNAL_SERVER_ERROR,
                 "An unexpected error occurred", request, null);
     }
 
-    private ResponseEntity<ErrorResponse> build(
+    private ResponseEntity<ErrorDto> build(
             HttpStatus status, String message, HttpServletRequest request, List<String> details) {
-        ErrorResponse body = ErrorResponse.of(
+        ErrorDto body = ErrorDto.of(
                 status.value(),
                 status.getReasonPhrase(),
                 message,

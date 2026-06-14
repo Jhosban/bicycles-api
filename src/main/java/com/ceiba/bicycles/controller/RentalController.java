@@ -1,8 +1,7 @@
 package com.ceiba.bicycles.controller;
 
-import com.ceiba.bicycles.dto.request.FinishRentalRequest;
-import com.ceiba.bicycles.dto.request.StartRentalRequest;
-import com.ceiba.bicycles.dto.response.RentalResponse;
+import com.ceiba.bicycles.dto.FinishRentalDto;
+import com.ceiba.bicycles.dto.RentalDto;
 import com.ceiba.bicycles.service.RentalService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,22 +22,22 @@ public class RentalController {
     private final RentalService rentalService;
 
     @PostMapping("/api/rentals")
-    public ResponseEntity<RentalResponse> startRental(
-            @Valid @RequestBody StartRentalRequest request) {
-        RentalResponse response = rentalService.startRental(request);
+    public ResponseEntity<RentalDto> startRental(
+            @Valid @RequestBody RentalDto request) {
+        RentalDto response = rentalService.startRental(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/api/rentals/{id}/finish")
-    public ResponseEntity<RentalResponse> finishRental(
+    public ResponseEntity<RentalDto> finishRental(
             @PathVariable Long id,
-            @RequestBody(required = false) FinishRentalRequest request) {
-        FinishRentalRequest body = request != null ? request : new FinishRentalRequest(null);
+            @RequestBody(required = false) FinishRentalDto request) {
+        FinishRentalDto body = request != null ? request : new FinishRentalDto(null);
         return ResponseEntity.ok(rentalService.finishRental(id, body));
     }
 
     @GetMapping("/api/bicycles/{code}/history")
-    public ResponseEntity<List<RentalResponse>> findHistory(@PathVariable String code) {
+    public ResponseEntity<List<RentalDto>> findHistory(@PathVariable String code) {
         return ResponseEntity.ok(rentalService.findHistory(code));
     }
 }

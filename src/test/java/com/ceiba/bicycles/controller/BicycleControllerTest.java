@@ -1,10 +1,11 @@
 package com.ceiba.bicycles.controller;
 
-import com.ceiba.bicycles.dto.request.CreateBicycleRequest;
-import com.ceiba.bicycles.dto.response.BicycleResponse;
+import com.ceiba.bicycles.dto.BicycleDto;
 import com.ceiba.bicycles.exception.GlobalExceptionHandler;
 import com.ceiba.bicycles.model.BicycleStatus;
 import com.ceiba.bicycles.model.BicycleType;
+import com.ceiba.bicycles.security.JsonAuthenticationEntryPoint;
+import com.ceiba.bicycles.security.JwtService;
 import com.ceiba.bicycles.service.BicycleService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -39,13 +40,17 @@ class BicycleControllerTest {
     @MockitoBean
     private BicycleService bicycleService;
 
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private JsonAuthenticationEntryPoint jsonAuthenticationEntryPoint;
+
     @Test
     void shouldCreateBicycleAndReturn201() throws Exception {
-        CreateBicycleRequest request = new CreateBicycleRequest("BIC-099", BicycleType.URBANA, null);
-        BicycleResponse response = new BicycleResponse(
-                1L, "BIC-099", BicycleType.URBANA, BicycleStatus.DISPONIBLE
-        );
-        when(bicycleService.create(any(CreateBicycleRequest.class))).thenReturn(response);
+        BicycleDto request = new BicycleDto(null, "BIC-099", BicycleType.URBANA, null);
+        BicycleDto response = new BicycleDto(1L, "BIC-099", BicycleType.URBANA, BicycleStatus.DISPONIBLE);
+        when(bicycleService.create(any(BicycleDto.class))).thenReturn(response);
 
         mockMvc.perform(post("/api/bicycles")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -59,7 +64,7 @@ class BicycleControllerTest {
 
     @Test
     void shouldReturn400WhenCodeIsBlank() throws Exception {
-        CreateBicycleRequest request = new CreateBicycleRequest("", BicycleType.URBANA, null);
+        BicycleDto request = new BicycleDto(null, "", BicycleType.URBANA, null);
 
         mockMvc.perform(post("/api/bicycles")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -81,9 +86,9 @@ class BicycleControllerTest {
 
     @Test
     void shouldReturnAvailableBicyclesWithoutTypeFilter() throws Exception {
-        List<BicycleResponse> bikes = List.of(
-                new BicycleResponse(1L, "BIC-001", BicycleType.URBANA, BicycleStatus.DISPONIBLE),
-                new BicycleResponse(2L, "BIC-002", BicycleType.MONTAÑA, BicycleStatus.DISPONIBLE)
+        List<BicycleDto> bikes = List.of(
+                new BicycleDto(1L, "BIC-001", BicycleType.URBANA, BicycleStatus.DISPONIBLE),
+                new BicycleDto(2L, "BIC-002", BicycleType.MONTAÑA, BicycleStatus.DISPONIBLE)
         );
         when(bicycleService.findAvailable(isNull())).thenReturn(bikes);
 
@@ -95,8 +100,8 @@ class BicycleControllerTest {
 
     @Test
     void shouldReturnAvailableBicyclesFilteredByType() throws Exception {
-        List<BicycleResponse> bikes = List.of(
-                new BicycleResponse(1L, "BIC-001", BicycleType.URBANA, BicycleStatus.DISPONIBLE)
+        List<BicycleDto> bikes = List.of(
+                new BicycleDto(1L, "BIC-001", BicycleType.URBANA, BicycleStatus.DISPONIBLE)
         );
         when(bicycleService.findAvailable(BicycleType.URBANA)).thenReturn(bikes);
 

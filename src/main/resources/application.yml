@@ -34,3 +34,5 @@ app:
   security:
     jwt:
       secret: ${SUPABASE_JWT_SECRET}
+      issuer: supabase
+      clock-skew-seconds: 30

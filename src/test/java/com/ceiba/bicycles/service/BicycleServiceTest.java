@@ -1,7 +1,6 @@
 package com.ceiba.bicycles.service;
 
-import com.ceiba.bicycles.dto.request.CreateBicycleRequest;
-import com.ceiba.bicycles.dto.response.BicycleResponse;
+import com.ceiba.bicycles.dto.BicycleDto;
 import com.ceiba.bicycles.exception.BicycleNotFoundException;
 import com.ceiba.bicycles.model.Bicycle;
 import com.ceiba.bicycles.model.BicycleStatus;
@@ -35,9 +34,7 @@ class BicycleServiceTest {
 
     @Test
     void shouldCreateBicycleWithDefaultStatusWhenStatusNotProvided() {
-        CreateBicycleRequest request = new CreateBicycleRequest(
-                "BIC-099", BicycleType.URBANA, null
-        );
+        BicycleDto request = new BicycleDto(null, "BIC-099", BicycleType.URBANA, null);
         Bicycle saved = Bicycle.builder()
                 .id(1L)
                 .code("BIC-099")
@@ -47,7 +44,7 @@ class BicycleServiceTest {
         when(bicycleRepository.existsByCode("BIC-099")).thenReturn(false);
         when(bicycleRepository.save(any(Bicycle.class))).thenReturn(saved);
 
-        BicycleResponse response = bicycleService.create(request);
+        BicycleDto response = bicycleService.create(request);
 
         assertThat(response.code()).isEqualTo("BIC-099");
         assertThat(response.type()).isEqualTo(BicycleType.URBANA);
@@ -57,9 +54,7 @@ class BicycleServiceTest {
 
     @Test
     void shouldCreateBicycleWithProvidedStatus() {
-        CreateBicycleRequest request = new CreateBicycleRequest(
-                "BIC-100", BicycleType.MONTAÑA, BicycleStatus.EN_MANTENIMIENTO
-        );
+        BicycleDto request = new BicycleDto(null, "BIC-100", BicycleType.MONTAÑA, BicycleStatus.EN_MANTENIMIENTO);
         Bicycle saved = Bicycle.builder()
                 .id(2L)
                 .code("BIC-100")
@@ -69,16 +64,14 @@ class BicycleServiceTest {
         when(bicycleRepository.existsByCode("BIC-100")).thenReturn(false);
         when(bicycleRepository.save(any(Bicycle.class))).thenReturn(saved);
 
-        BicycleResponse response = bicycleService.create(request);
+        BicycleDto response = bicycleService.create(request);
 
         assertThat(response.status()).isEqualTo(BicycleStatus.EN_MANTENIMIENTO);
     }
 
     @Test
     void shouldThrowWhenCodeAlreadyExists() {
-        CreateBicycleRequest request = new CreateBicycleRequest(
-                "BIC-001", BicycleType.URBANA, null
-        );
+        BicycleDto request = new BicycleDto(null, "BIC-001", BicycleType.URBANA, null);
         when(bicycleRepository.existsByCode("BIC-001")).thenReturn(true);
 
         assertThatThrownBy(() -> bicycleService.create(request))
@@ -96,7 +89,7 @@ class BicycleServiceTest {
         );
         when(bicycleRepository.findByStatus(BicycleStatus.DISPONIBLE)).thenReturn(bikes);
 
-        List<BicycleResponse> result = bicycleService.findAvailable(null);
+        List<BicycleDto> result = bicycleService.findAvailable(null);
 
         assertThat(result).hasSize(2);
     }
@@ -109,10 +102,10 @@ class BicycleServiceTest {
         when(bicycleRepository.findByStatusAndType(BicycleStatus.DISPONIBLE, BicycleType.URBANA))
                 .thenReturn(bikes);
 
-        List<BicycleResponse> result = bicycleService.findAvailable(BicycleType.URBANA);
+        List<BicycleDto> result = bicycleService.findAvailable(BicycleType.URBANA);
 
         assertThat(result).hasSize(1);
-        assertThat(result.getFirst().type()).isEqualTo(BicycleType.URBANA);
+        assertThat(result.get(0).type()).isEqualTo(BicycleType.URBANA);
     }
 
     @Test

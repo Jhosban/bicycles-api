@@ -1,12 +1,13 @@
 package com.ceiba.bicycles.controller;
 
-import com.ceiba.bicycles.dto.request.FinishRentalRequest;
-import com.ceiba.bicycles.dto.request.StartRentalRequest;
-import com.ceiba.bicycles.dto.response.RentalResponse;
+import com.ceiba.bicycles.dto.FinishRentalDto;
+import com.ceiba.bicycles.dto.RentalDto;
 import com.ceiba.bicycles.exception.BicycleNotAvailableException;
 import com.ceiba.bicycles.exception.BicycleNotFoundException;
 import com.ceiba.bicycles.exception.GlobalExceptionHandler;
 import com.ceiba.bicycles.exception.RentalNotFoundException;
+import com.ceiba.bicycles.security.JsonAuthenticationEntryPoint;
+import com.ceiba.bicycles.security.JwtService;
 import com.ceiba.bicycles.service.RentalService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -43,11 +44,18 @@ class RentalControllerTest {
     @MockitoBean
     private RentalService rentalService;
 
-    private RentalResponse buildRentalResponse() {
-        return new RentalResponse(
-                10L, "BIC-001", "Juan Perez",
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private JsonAuthenticationEntryPoint jsonAuthenticationEntryPoint;
+
+    private RentalDto buildRentalDto() {
+        return new RentalDto(
+                10L, "BIC-001", "Juan Perez", 2,
+                null,
                 LocalDateTime.of(2026, 4, 29, 10, 0),
-                null, 2, null, null, null, null, false, false
+                null, null, null, null, null, false
         );
     }
 
@@ -55,9 +63,12 @@ class RentalControllerTest {
 
     @Test
     void shouldStartRentalAndReturn201() throws Exception {
-        StartRentalRequest request = new StartRentalRequest("BIC-001", "Juan Perez", 2);
-        when(rentalService.startRental(any(StartRentalRequest.class)))
-                .thenReturn(buildRentalResponse());
+        RentalDto request = new RentalDto(
+                null, "BIC-001", "Juan Perez", 2,
+                null, null, null, null, null, null, null, null
+        );
+        when(rentalService.startRental(any(RentalDto.class)))
+                .thenReturn(buildRentalDto());
 
         mockMvc.perform(post("/api/rentals")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -71,7 +82,10 @@ class RentalControllerTest {
 
     @Test
     void shouldReturn400WhenBicycleCodeIsBlank() throws Exception {
-        StartRentalRequest request = new StartRentalRequest("", "Juan", 2);
+        RentalDto request = new RentalDto(
+                null, "", "Juan", 2,
+                null, null, null, null, null, null, null, null
+        );
 
         mockMvc.perform(post("/api/rentals")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -83,8 +97,11 @@ class RentalControllerTest {
 
     @Test
     void shouldReturn409WhenBicycleNotAvailable() throws Exception {
-        StartRentalRequest request = new StartRentalRequest("BIC-001", "Juan", 2);
-        when(rentalService.startRental(any(StartRentalRequest.class)))
+        RentalDto request = new RentalDto(
+                null, "BIC-001", "Juan", 2,
+                null, null, null, null, null, null, null, null
+        );
+        when(rentalService.startRental(any(RentalDto.class)))
                 .thenThrow(new BicycleNotAvailableException("Bicycle BIC-001 is not available"));
 
         mockMvc.perform(post("/api/rentals")
@@ -96,8 +113,11 @@ class RentalControllerTest {
 
     @Test
     void shouldReturn404WhenBicycleNotFound() throws Exception {
-        StartRentalRequest request = new StartRentalRequest("BIC-999", "Juan", 2);
-        when(rentalService.startRental(any(StartRentalRequest.class)))
+        RentalDto request = new RentalDto(
+                null, "BIC-999", "Juan", 2,
+                null, null, null, null, null, null, null, null
+        );
+        when(rentalService.startRental(any(RentalDto.class)))
                 .thenThrow(new BicycleNotFoundException("BIC-999"));
 
         mockMvc.perform(post("/api/rentals")
@@ -111,18 +131,17 @@ class RentalControllerTest {
 
     @Test
     void shouldFinishRentalAndReturn200() throws Exception {
-        RentalResponse finished = new RentalResponse(
-                10L, "BIC-001", "Juan Perez",
+        RentalDto finished = new RentalDto(
+                10L, "BIC-001", "Juan Perez", 2,
+                120L,
                 LocalDateTime.of(2026, 4, 29, 10, 0),
                 LocalDateTime.of(2026, 4, 29, 12, 0),
-                2, 120L, 7_000L, 0L, 7_000L, false, true
+                7_000L, 0L, 7_000L, false, true
         );
-        when(rentalService.finishRental(eq(10L), any(FinishRentalRequest.class)))
+        when(rentalService.finishRental(eq(10L), any(FinishRentalDto.class)))
                 .thenReturn(finished);
 
-        FinishRentalRequest body = new FinishRentalRequest(
-                LocalDateTime.of(2026, 4, 29, 12, 0)
-        );
+        FinishRentalDto body = new FinishRentalDto(LocalDateTime.of(2026, 4, 29, 12, 0));
         mockMvc.perform(post("/api/rentals/10/finish")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(body)))
@@ -135,13 +154,14 @@ class RentalControllerTest {
 
     @Test
     void shouldFinishRentalWhenBodyIsNull() throws Exception {
-        RentalResponse finished = new RentalResponse(
-                10L, "BIC-001", "Juan Perez",
+        RentalDto finished = new RentalDto(
+                10L, "BIC-001", "Juan Perez", 2,
+                120L,
                 LocalDateTime.of(2026, 4, 29, 10, 0),
                 LocalDateTime.of(2026, 4, 29, 12, 0),
-                2, 120L, 7_000L, 0L, 7_000L, false, true
+                7_000L, 0L, 7_000L, false, true
         );
-        when(rentalService.finishRental(eq(10L), any(FinishRentalRequest.class)))
+        when(rentalService.finishRental(eq(10L), any(FinishRentalDto.class)))
                 .thenReturn(finished);
 
         mockMvc.perform(post("/api/rentals/10/finish"))
@@ -151,7 +171,7 @@ class RentalControllerTest {
 
     @Test
     void shouldReturn404WhenRentalNotFound() throws Exception {
-        when(rentalService.finishRental(eq(99L), any(FinishRentalRequest.class)))
+        when(rentalService.finishRental(eq(99L), any(FinishRentalDto.class)))
                 .thenThrow(new RentalNotFoundException(99L));
 
         mockMvc.perform(post("/api/rentals/99/finish"))
@@ -163,14 +183,16 @@ class RentalControllerTest {
 
     @Test
     void shouldReturnHistoryForBicycle() throws Exception {
-        List<RentalResponse> history = List.of(
-                new RentalResponse(2L, "BIC-001", "Maria",
-                        LocalDateTime.of(2026, 4, 29, 10, 0), null,
-                        3, null, null, null, null, false, false),
-                new RentalResponse(1L, "BIC-001", "Juan",
+        List<RentalDto> history = List.of(
+                new RentalDto(2L, "BIC-001", "Maria", 3,
+                        null,
+                        LocalDateTime.of(2026, 4, 29, 10, 0),
+                        null, null, null, null, null, false),
+                new RentalDto(1L, "BIC-001", "Juan", 2,
+                        120L,
                         LocalDateTime.of(2026, 4, 28, 10, 0),
                         LocalDateTime.of(2026, 4, 28, 12, 0),
-                        2, 120L, 7_000L, 0L, 7_000L, false, true)
+                        7_000L, 0L, 7_000L, false, true)
         );
         when(rentalService.findHistory("BIC-001")).thenReturn(history);
 
