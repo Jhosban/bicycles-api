@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: bicycles
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  web:
+    error:
+      include-message: always
+      include-stacktrace: never
+
+server:
+  port: 8080
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+app:
+  security:
+    jwt:
+      jwks-uri: ${SUPABASE_JWKS_URI:https://oiuaeujdqdhmlzdbamvv.supabase.co/auth/v1/.well-known/jwks.json}
+      issuer: ${SUPABASE_JWT_ISSUER:https://oiuaeujdqdhmlzdbamvv.supabase.co/auth/v1}
+      clock-skew-seconds: 30

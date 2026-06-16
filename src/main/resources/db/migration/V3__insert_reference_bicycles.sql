@@ -1,0 +1,6 @@
+INSERT INTO bicycles (code, type, status) VALUES
+    ('BIC-001', 'URBANA', 'DISPONIBLE'),
+    ('BIC-002', 'MONTAÑA', 'DISPONIBLE'),
+    ('BIC-003', 'ELÉCTRICA', 'DISPONIBLE'),
+    ('BIC-004', 'MONTAÑA', 'EN_MANTENIMIENTO'),
+    ('BIC-005', 'URBANA', 'DISPONIBLE');
